@@ -1,0 +1,28 @@
+﻿@model Portfolio.Models.HomeDetailViewModel
+
+    <div class="jumbotron">
+        <h1 class="display-4">@Model.Titel</h1>
+        <hr class="my-4">
+        <p class="lead">@Model.Beschrijving</p>
+        @if (Model.Foto != null)
+        {
+        
+            var base64 = Convert.ToBase64String(Model.Foto);
+            var imgSrc = String.Format("data:image/gif;base64,{0}", base64);
+        
+
+
+        <img src="@imgSrc" />
+        }
+        <hr class="my-4" />
+        <p>Status:</p>
+        <p>@Model.Status</p>
+        <hr class="my-4" />
+        <p>Tags:</p>
+        @foreach (var item in Model.Tags)
+        {
+            <p>@item.Name</p>
+        }
+
+        <a class="btn btn-secondary text-danger btn-lg" asp-action="Index" asp-controller="Home" role="button">Back</a>
+    </div>

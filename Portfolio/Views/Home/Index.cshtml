@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model IEnumerable<Portfolio.Models.HomeListViewModel>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Overzicht Projecten.</p>
+    @if (Model != null)
+    {
+
+        @foreach (var item in Model)
+        {
+            <div class="jumbotron">
+                <h1 class="display-4">@item.Titel</h1>
+                <hr class="my-4">
+                <p class="lead">@item.Beschrijving</p>
+
+                <a class="btn btn-secondary text-danger btn-lg" asp-action="Details" asp-controller="Home" asp-route-id="@item.Id" role="button">Details</a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a class="btn btn-secondary text-danger btn-lg" asp-action="Edit" asp-controller="Home" asp-route-id="@item.Id" role="button">Edit</a>
+                    <a class="btn btn-secondary text-danger btn-lg" asp-action="Delete" asp-controller="Home" asp-route-id="@item.Id" role="button">Delete</a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p>Geen Projecten gevonden.</p>
+    }
+</div>
+@if (SignInManager.IsSignedIn(User))
+{
+    <a class="btn btn-secondary text-danger" asp-action="Create" asp-controller="Home" role="button">Create</a>
+
+}

@@ -1,0 +1,15 @@
+﻿@model Portfolio.Models.HomeDeleteViewModel
+    
+
+
+
+<div class="jumbotron">
+        <h1 class="display-4">Delete @Model.Titel</h1>
+        <hr class="my-4">
+        <p class="lead">Weet je zeker dat je @Model.Titel wilt verwijderen?</p>
+        <form asp-action="ConfirmDelete" asp-controller="Home" asp-route-id="@Model.Id" method="post" role="form">
+            <div class="form-group">
+                <input type="submit" class="btn btn-secondary text-danger" value="Bevestigen!" />
+            </div>
+        </form>
+</div>
