@@ -1,4 +1,5 @@
-﻿using Portfolio.Domain;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Portfolio.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace Portfolio.Models
         public string Beschrijving { get; set; }
         public byte[] Foto { get; set; }
         public Status Status { get; set; }
+        public List<SelectListItem> Statuses { get; set; }
+        public string SelectedStatus { get; set; }
         public ICollection<TagProject> TagProjects { get; set; }
     }
 }

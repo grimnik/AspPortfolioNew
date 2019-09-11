@@ -29,6 +29,17 @@ namespace Portfolio.Controllers
             List<HomeListViewModel> projects = new List<HomeListViewModel>();
             IEnumerable<Project> projectsFromDb = _appContext.Projects.ToArray();
 
+            Status[] statusesFromDb = _appContext.Statuses.ToArray();
+            List<SelectListItem> statuses = new List<SelectListItem>();
+            foreach (var item in statusesFromDb)
+            {
+                statuses.Add(new SelectListItem()
+                {
+                    Value = item.Id.ToString(),
+                    Text = item.Naam
+                });
+            }
+
             foreach (Project project in projectsFromDb)
             {
                 projects.Add(new HomeListViewModel()
@@ -38,7 +49,9 @@ namespace Portfolio.Controllers
                     Beschrijving = project.Beschrijving,
                     Foto = project.Foto,
                     Status = project.Status,
-                    TagProjects = project.TagProjects
+                    TagProjects = project.TagProjects,
+                    Statuses=statuses
+                    
                 });
             }
             return View(projects);
