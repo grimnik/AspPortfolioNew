@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Portfolio.Data;
 using Portfolio.Domain;
 using Portfolio.Models;
@@ -19,15 +20,40 @@ namespace Portfolio.Controllers
     {
         private readonly ApplicationDbContext _appContext;
         private readonly IHostingEnvironment hostingEnvironment;
-        public HomeController(ApplicationDbContext appContext,IHostingEnvironment environment)
+        public HomeController(ApplicationDbContext appContext, IHostingEnvironment environment)
         {
             _appContext = appContext;
             hostingEnvironment = environment;
         }
-        public IActionResult Index()
+        public IActionResult Index(string zoekveld, string tags, string status)
         {
             List<HomeListViewModel> projects = new List<HomeListViewModel>();
-            IEnumerable<Project> projectsFromDb = _appContext.Projects.ToArray();
+
+            IQueryable<Project> query = _appContext.Projects
+                .Include(project => project.TagProjects).ThenInclude(tagProject => tagProject.Tag);
+            List<Project> taggedProjects = new List<Project>();
+
+            if (!string.IsNullOrEmpty(zoekveld))
+            {
+                query = query.Where(project => project.Titel.Contains(zoekveld));
+
+            }
+            if (!string.IsNullOrEmpty(tags))
+            {
+                string[] splittedTags = tags.Split(" ");
+
+                query = query.Where(project =>
+                    splittedTags.Any(tag =>
+                        project.TagProjects.Select(tagProject => tagProject.Tag.Naam).Contains(tag, StringComparer.InvariantCultureIgnoreCase)
+                        )
+                    );
+            }
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(project => project.Status.Naam == status);
+            }
+
+            IEnumerable<Project> projectsFromDb = query.ToList();
 
             Status[] statusesFromDb = _appContext.Statuses.ToArray();
             List<SelectListItem> statuses = new List<SelectListItem>();
@@ -50,8 +76,8 @@ namespace Portfolio.Controllers
                     Foto = project.Foto,
                     Status = project.Status,
                     TagProjects = project.TagProjects,
-                    Statuses=statuses
-                    
+                    Statuses = statuses
+
                 });
             }
             return View(projects);
@@ -71,7 +97,7 @@ namespace Portfolio.Controllers
         {
             Tag[] tagsFromDb = _appContext.Tags.ToArray();
             List<HomeTagViewModel> tags = new List<HomeTagViewModel>();
-            
+
             Status[] statusesFromDb = _appContext.Statuses.ToArray();
             List<SelectListItem> statuses = new List<SelectListItem>();
 
@@ -100,7 +126,7 @@ namespace Portfolio.Controllers
 
             return View(model);
         }
-       
+
 
         [HttpPost]
         public async Task<IActionResult> Create(HomeCreateViewModel model)
@@ -109,14 +135,14 @@ namespace Portfolio.Controllers
             {
                 return View(model);
             }
-            
+
 
             var project = new Project()
             {
                 Titel = model.Titel,
                 Beschrijving = model.Beschrijving,
                 StatusId = int.Parse(model.SelectedStatus),
-                
+
             };
             using (var memoryStream = new MemoryStream())
             {
@@ -125,7 +151,7 @@ namespace Portfolio.Controllers
             }
 
 
-                _appContext.Projects.Add(project);
+            _appContext.Projects.Add(project);
             _appContext.SaveChanges();
             foreach (var item in model.Tags)
             {
@@ -137,11 +163,11 @@ namespace Portfolio.Controllers
                         TagId = item.Id
                     };
                     _appContext.TagProjects.Add(tagProject);
-            _appContext.SaveChanges();
+                    _appContext.SaveChanges();
                 }
             }
-           
-           
+
+
 
             return RedirectToAction("Index");
         }
@@ -149,8 +175,8 @@ namespace Portfolio.Controllers
         {
             Project projectFromDb = _appContext.Projects.FirstOrDefault(x => x.Id == id);
             Status status = _appContext.Statuses.FirstOrDefault(x => x.Id == projectFromDb.StatusId);
-            
-            List<HomeTagViewModel> tags= new List<HomeTagViewModel>();
+
+            List<HomeTagViewModel> tags = new List<HomeTagViewModel>();
             var selectedTags = _appContext.TagProjects.ToArray();
             foreach (var item in selectedTags)
             {
@@ -160,12 +186,12 @@ namespace Portfolio.Controllers
                     HomeTagViewModel tagViewModel = new HomeTagViewModel()
                     {
                         Name = tag.Naam
-                        
+
                     };
                     tags.Add(tagViewModel);
                 }
             }
-            
+
 
             HomeDetailViewModel model = new HomeDetailViewModel()
             {
@@ -175,10 +201,10 @@ namespace Portfolio.Controllers
                 Foto = projectFromDb.Foto,
                 Status = status.Naam,
                 Tags = tags,
-                
+
             };
             return View(model);
-            
+
         }
         public IActionResult Edit(int id)
         {
@@ -187,7 +213,7 @@ namespace Portfolio.Controllers
             Status[] statusesFromDb = _appContext.Statuses.ToArray();
             List<SelectListItem> statuses = new List<SelectListItem>();
             foreach (var item in statusesFromDb)
-            {   
+            {
                 statuses.Add(new SelectListItem()
                 {
                     Value = item.Id.ToString(),
@@ -200,12 +226,12 @@ namespace Portfolio.Controllers
                 {
                     Id = item.Id,
                     Name = item.Naam,
-                    
-                    
+
+
                 });
             }
 
-          
+
             Project projectFromDb = _appContext.Projects.FirstOrDefault(x => x.Id == id);
             HomeEditViewModel vm = new HomeEditViewModel()
             {
@@ -214,7 +240,7 @@ namespace Portfolio.Controllers
                 Foto = projectFromDb.Foto,
                 Tags = tags,
                 Statuses = statuses
-               
+
             };
 
             return View(vm);
@@ -235,8 +261,8 @@ namespace Portfolio.Controllers
                 Beschrijving = model.Beschrijving,
                 Foto = model.Foto,
                 StatusId = int.Parse(model.SelectedStatus),
-               
-                
+
+
             };
             _appContext.Projects.Update(projectToEdit);
             _appContext.SaveChanges();
@@ -246,20 +272,20 @@ namespace Portfolio.Controllers
                 if (item.Checked)
                 {
 
-                var tagProject = new TagProject()
-                {
-                   
-                    ProjectId = projectToEdit.Id,
-                    TagId = item.Id
-                };
-                _appContext.TagProjects.Update(tagProject);
-                _appContext.SaveChanges();
+                    var tagProject = new TagProject()
+                    {
+
+                        ProjectId = projectToEdit.Id,
+                        TagId = item.Id
+                    };
+                    _appContext.TagProjects.Update(tagProject);
+                    _appContext.SaveChanges();
                 }
             }
 
-            return RedirectToAction("Details",new { Id = id });
+            return RedirectToAction("Details", new { Id = id });
         }
-        
+
         public IActionResult Delete(int id)
         {
             Project projectToDel = _appContext.Projects.FirstOrDefault(x => x.Id == id);

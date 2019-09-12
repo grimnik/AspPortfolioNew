@@ -10,27 +10,29 @@
         <h1 class="display-4">Welcome</h1>
         <p>Overzicht Projecten.</p>
 
-        @*no clue how to do these filters*@
+      
 
         @if (Model != null)
         {
-            foreach (var item in Model)
-            {
+    <form asp-action="Index" asp-controller="Home" method="get">
+        <label>Zoek op titel</label>
+        <input class="form-control" name="zoekveld" />
 
-                <div class="form-group">
-                    <label> Filter on status</label><br />
-                    <select asp-for="@item.SelectedStatus" asp-items="@item.Statuses" class="btn btn-secondary text-danger"></select>
-                    <span class="text-danger" asp-validation-for="@item.SelectedStatus"></span>
-                </div>
+        <label>Zoek op tags</label>
+        <input class="form-control" name="tags" />
+
+        <label>Zoek op status</label>
+        <input class="form-control" name="status" />
+        <br />
+        <button class="btn btn-secondary text-danger" type="submit">Zoek</button>
+    </form>
 
 
-
-                break;
-            }
-
+ 
 
             @foreach (var item in Model)
             {
+
 
                 <div class="jumbotron">
                     <h1 class="display-4">@item.Titel</h1>
